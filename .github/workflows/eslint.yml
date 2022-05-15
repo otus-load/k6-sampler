@@ -24,7 +24,6 @@ jobs:
       - name: Install ESLint
         run: |
           npm install eslint@8.15.0
-          npm install --save eslint-config-airbnb
 
       - name: Run ESLint
         run: npx eslint .
