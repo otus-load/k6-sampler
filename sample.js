@@ -58,6 +58,6 @@ export function getFeatures() {
 }
 
 export default function () {
-  group('get_base', () => { getBase(); });
-  group('get_features', () => { getFeatures(); });
+  group('getBase', () => { getBase(); });
+  group('getFeatures', () => { getFeatures(); });
 }
