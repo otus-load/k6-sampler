@@ -50,7 +50,7 @@ export function getFeatures() {
     const res = http.get(`${BASE_URL}/news.php`);
     check(res, {
       'status code is not 404': (res) => res.status !== 404,
-    })
+    });
     const resMessage = http.get(`${BASE_URL}/my_messages.php`);
     const title = resMessage.html().find('head title').text();
     console.log(title);
