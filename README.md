@@ -1,2 +1,3 @@
 # k6-sampler
-Simple k6 load test
+
+Simple k6 load test for OTUS
