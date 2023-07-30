@@ -11,7 +11,8 @@
   "description": "",
   "main": "sample.js",
   "scripts": {
-    "test": "k6 run sample.js"
+    "lint": "npx eslint . --config .eslintrc.json --ext .js,.jsx,.ts,.tsx",
+    "start": "k6 run sample.js"
   },
   "repository": {
     "type": "git",
