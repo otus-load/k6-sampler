@@ -15,3 +15,18 @@ For debug
 ```shell
 k6 run --http-debug="full" sample.js
 ```
+
+## Docker
+
+
+Build docker image
+
+```shell
+docker build -t otus/k6:1.0.0 .
+``` 
+
+Start k6 test:
+
+```shell
+docker run -it --rm otus/k6:1.0.0
+```
