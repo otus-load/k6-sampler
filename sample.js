@@ -1,12 +1,13 @@
 import http from 'k6/http';
 import { check, group } from 'k6';
 import { SharedArray } from 'k6/data';
-import { Trend } from 'k6/metrics';
+import { Trend, Rate } from 'k6/metrics';
 import { uuidv4 } from 'https://jslib.k6.io/k6-utils/1.4.0/index.js';
 
 const BASE_URL = 'https://test.k6.io';
 
-const myTrend = new Trend('my_otus_trend');
+let myTrend = new Trend('my_otus_trend');
+let myCheckFailureRate = new Rate("otus_check_failure_rate");
 
 /* eslint prefer-arrow-callback: "warn" */
 const data = new SharedArray('get Users', function () {
@@ -51,17 +52,19 @@ export const options = {
     http_req_failed: ['rate<1'],
     http_req_duration: ['p(95)<300'],
     'http_req_duration{my_tag:  API_OTUS}': ['p(95)<500'],
+    'otus_check_failure_rate': ['rate<0.3']
   },
 };
 
 export function login() {
   /* eslint prefer-template: "warn" */
   const res = http.get(BASE_URL + '/my_messages.php', { tags: { my_tag: 'API_OTUS' } });
-  check(
+  let checkRes = check(
     res,
     { 'status code messages is 200': (res) => res.status === 200 },
     { my_tag: 'my check OTUS' },
   );
+  myCheckFailureRate.add(!checkRes);
 
   const csrftoken = res.html().find('input[name=csrftoken]').first().attr('value');
   const random = Math.floor(Math.random() * data.length);
@@ -78,10 +81,10 @@ export function login() {
     csrftoken: `${csrftoken}`,
   };
 
-  const headers = { headers: { 'Content-Type': 'text/html; charset=UTF-8' } };
+  const headers = { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } };
   const resPost = http.post(
     'https://test.k6.io/login.php',
-    JSON.stringify(payload),
+    payload,
     headers,
   );
   check(resPost, {
