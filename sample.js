@@ -6,8 +6,8 @@ import { uuidv4 } from 'https://jslib.k6.io/k6-utils/1.4.0/index.js';
 
 const BASE_URL = 'https://test.k6.io';
 
-let myTrend = new Trend('my_otus_trend');
-let myCheckFailureRate = new Rate("otus_check_failure_rate");
+const myTrend = new Trend('my_otus_trend');
+const myCheckFailureRate = new Rate('otus_check_failure_rate');
 
 /* eslint prefer-arrow-callback: "warn" */
 const data = new SharedArray('get Users', function () {
@@ -59,7 +59,7 @@ export const options = {
 export function login() {
   /* eslint prefer-template: "warn" */
   const res = http.get(BASE_URL + '/my_messages.php', { tags: { my_tag: 'API_OTUS' } });
-  let checkRes = check(
+  const checkRes = check(
     res,
     { 'status code messages is 200': (res) => res.status === 200 },
     { my_tag: 'my check OTUS' },
