@@ -52,7 +52,7 @@ export const options = {
     http_req_failed: ['rate<1'],
     http_req_duration: ['p(95)<300'],
     'http_req_duration{my_tag:  API_OTUS}': ['p(95)<500'],
-    'otus_check_failure_rate': ['rate<0.3']
+    otus_check_failure_rate: ['rate<0.3'],
   },
 };
 
