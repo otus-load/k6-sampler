@@ -4,7 +4,7 @@ import { SharedArray } from 'k6/data';
 import { Trend, Rate } from 'k6/metrics';
 import { uuidv4 } from 'https://jslib.k6.io/k6-utils/1.4.0/index.js';
 
-const BASE_URL = 'https://test.k6.io';
+const BASE_URL = 'https://quickpizza.grafana.com';
 
 const myTrend = new Trend('my_otus_trend');
 const myCheckFailureRate = new Rate('otus_check_failure_rate');
@@ -16,7 +16,7 @@ const data = new SharedArray('get Users', function () {
 });
 
 export const options = {
-//   discardResponseBodies: true, // if you check only http-code
+  // discardResponseBodies: true, // if you check only http-code
   scenarios: {
     base: {
       executor: 'constant-vus',
@@ -24,29 +24,29 @@ export const options = {
       vus: 50,
       duration: '30s',
     },
-    // getPages: {
-    //   executor: 'ramping-arrival-rate',
-    //   exec: 'getPages',
-    //   startRate: 3,
-    //   timeUnit: '1s',
-    //   preAllocatedVUs: 50,
-    //   stages: [
-    //     { target: 5, duration: '10s' },
-    //     { target: 5, duration: '20s' },
-    //     { target: 7, duration: '5s' },
-    //     { target: 0, duration: '10s' },
-    //   // RPS: 3 --> 5 --> 5 --> 7 --> 0
-    //   // ░░██░░░░░░░░░░░░░░░░░░░░░░░░░░░░
-    //   // ░░██░░░░░░░░░░░░░░██████░░░░░░░░
-    //   // ░░██░░░░░░░░░░░░██░░░░░░██░░░░░░
-    //   // ░░██░░░░████████░░░░░░░░██░░░░░░
-    //   // ░░██░░██░░░░░░░░░░░░░░░░░░██░░░░
-    //   // ░░████░░░░░░░░░░░░░░░░░░░░██░░░░
-    //   // ░░██░░░░░░░░░░░░░░░░░░░░░░░░██░░
-    //   // ░░██░░░░░░░░░░░░░░░░░░░░░░░░██░░
-    //   // ░░██████████████████████████████
-    //   ],
-    // },
+    getPages: {
+      executor: 'ramping-arrival-rate',
+      exec: 'getPages',
+      startRate: 3,
+      timeUnit: '1s',
+      preAllocatedVUs: 50,
+      stages: [
+        { target: 5, duration: '10s' },
+        { target: 5, duration: '20s' },
+        { target: 7, duration: '5s' },
+        { target: 0, duration: '10s' },
+      // RPS: 3 --> 5 --> 5 --> 7 --> 0
+      // ░░██░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+      // ░░██░░░░░░░░░░░░░░██████░░░░░░░░
+      // ░░██░░░░░░░░░░░░██░░░░░░██░░░░░░
+      // ░░██░░░░████████░░░░░░░░██░░░░░░
+      // ░░██░░██░░░░░░░░░░░░░░░░░░██░░░░
+      // ░░████░░░░░░░░░░░░░░░░░░░░██░░░░
+      // ░░██░░░░░░░░░░░░░░░░░░░░░░░░██░░
+      // ░░██░░░░░░░░░░░░░░░░░░░░░░░░██░░
+      // ░░██████████████████████████████
+      ],
+    },
   },
   thresholds: {
     http_req_failed: ['rate<1'],
@@ -58,7 +58,7 @@ export const options = {
 
 export function login() {
   /* eslint prefer-template: "warn" */
-  const res = http.get(BASE_URL + '/my_messages.php', { tags: { my_tag: 'API_OTUS' } });
+  let res = http.get(BASE_URL + '/', { tags: { my_tag: 'API_OTUS' } });
   const checkRes = check(
     res,
     { 'status code messages is 200': (res) => res.status === 200 },
@@ -66,7 +66,14 @@ export function login() {
   );
   myCheckFailureRate.add(!checkRes);
 
-  const csrftoken = res.html().find('input[name=csrftoken]').first().attr('value');
+  http.get(BASE_URL + '/login', { tags: { my_tag: 'API_OTUS' } });
+  // set CSRF-token
+  res = http.post(BASE_URL + '/api/csrf-token', {});
+  // get Cookies
+  const cookiesResp = http.get(BASE_URL + '/api/cookies');
+  const csrftoken = cookiesResp.json().cookies.csrf_token;
+
+  // console.error(csrftoken)
   const random = Math.floor(Math.random() * data.length);
   const credentials = data[random];
 
@@ -75,16 +82,15 @@ export function login() {
   // console.log(credentials.password);
 
   const payload = {
-    login: credentials.username,
+    username: credentials.username,
     password: credentials.password,
-    redir: '1',
-    csrftoken: `${csrftoken}`,
+    csrf: csrftoken,
   };
 
-  const headers = { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } };
+  const headers = { headers: { 'Content-Type': 'application/json' } };
   const resPost = http.post(
-    'https://test.k6.io/login.php',
-    payload,
+    'https://quickpizza.grafana.com/api/users/token/login',
+    JSON.stringify(payload),
     headers,
   );
   check(resPost, {
@@ -96,16 +102,16 @@ export function login() {
 
 export function getPages() {
   group('open_web', () => {
-    const res = http.get(`${BASE_URL}/news.php`);
+    const res = http.get(`${BASE_URL}/api/tools`);
     check(res, {
       'status code news is not 404': (res) => res.status !== 404,
     });
   });
 
-  const resMessage = http.get(`${BASE_URL}/my_messages.php`);
-  const title = resMessage.html().find('head title').text();
-
-  console.log(title);
+  const resMessage = http.get(`${BASE_URL}/api/quotes`);
+  check(resMessage, {
+    'status code resMessage is 200': (resMessage) => resMessage.status === 200,
+  });
 
   const randomUUID = uuidv4();
   console.warn(randomUUID);

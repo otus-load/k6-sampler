@@ -2,3 +2,5 @@
 .vscode/
 node_modules/
 *.json
+.DB_Store
+otus.js
