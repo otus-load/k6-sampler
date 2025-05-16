@@ -4,3 +4,6 @@ node_modules/
 *.json
 .DB_Store
 otus.js
+*.log
+*.csv
+*.gz

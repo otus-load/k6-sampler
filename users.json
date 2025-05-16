@@ -2,7 +2,7 @@
     "users": [
         { "username": "default", "password": "12345678" },
         { "username": "default", "password": "12345678" },
-        { "username": "admin", "password": "12345678" },
-        { "username": "admin", "password": "123" }
+        { "username": "default", "password": "12345678" },
+        { "username": "default", "password": "12345678" }
     ]
 }
