@@ -9,6 +9,6 @@ jobs:
   docker-build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v7.0.1
     - name: Build the Docker image
       run: docker build . --file Dockerfile --tag otus-load/k6:$(date +%s)

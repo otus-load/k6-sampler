@@ -1,8 +1,8 @@
 {
     "users": [
-        { "username": "default", "password": "12345678" },
-        { "username": "default", "password": "12345678" },
-        { "username": "default", "password": "12345678" },
-        { "username": "default", "password": "12345678" }
+        { "username": "default", "password": "12345678", "count": "0" },
+        { "username": "default", "password": "12345678", "count": "1" },
+        { "username": "default", "password": "12345678", "count": "2" },
+        { "username": "default", "password": "12345678", "count": "3" }
     ]
 }

@@ -1,13 +1,14 @@
 import http from 'k6/http';
 import { check, group } from 'k6';
 import { SharedArray } from 'k6/data';
-import { Trend, Rate } from 'k6/metrics';
-import { uuidv4 } from 'https://jslib.k6.io/k6-utils/1.4.0/index.js';
+import { Trend, Rate, Counter } from 'k6/metrics';
 
-const BASE_URL = 'https://quickpizza.grafana.com';
+// const BASE_URL =  'http://localhost:3333';
+const BASE_URL = __ENV.BASE_URL || 'https://quickpizza.grafana.com'
 
 const myTrend = new Trend('my_otus_trend');
 const myCheckFailureRate = new Rate('otus_check_failure_rate');
+const myErrorCount = new Counter('otus_http_errors_total');
 
 /* eslint prefer-arrow-callback: "warn" */
 const data = new SharedArray('get Users', function () {
@@ -21,38 +22,39 @@ export const options = {
     base: {
       executor: 'constant-vus',
       exec: 'login',
-      vus: 50,
-      duration: '30s',
+      vus: 11,
+      duration: '31s',
     },
-    getPages: {
-      executor: 'ramping-arrival-rate',
-      exec: 'getPages',
-      startRate: 3,
-      timeUnit: '1s',
-      preAllocatedVUs: 50,
-      stages: [
-        { target: 5, duration: '10s' },
-        { target: 5, duration: '20s' },
-        { target: 7, duration: '5s' },
-        { target: 0, duration: '10s' },
-      // RPS: 3 --> 5 --> 5 --> 7 --> 0
-      // ░░██░░░░░░░░░░░░░░░░░░░░░░░░░░░░
-      // ░░██░░░░░░░░░░░░░░██████░░░░░░░░
-      // ░░██░░░░░░░░░░░░██░░░░░░██░░░░░░
-      // ░░██░░░░████████░░░░░░░░██░░░░░░
-      // ░░██░░██░░░░░░░░░░░░░░░░░░██░░░░
-      // ░░████░░░░░░░░░░░░░░░░░░░░██░░░░
-      // ░░██░░░░░░░░░░░░░░░░░░░░░░░░██░░
-      // ░░██░░░░░░░░░░░░░░░░░░░░░░░░██░░
-      // ░░██████████████████████████████
-      ],
-    },
+    // getPages: {
+    //   executor: 'ramping-arrival-rate',
+    //   exec: 'getPages',
+    //   startRate: 3,
+    //   timeUnit: '1s',
+    //   preAllocatedVUs: 50,
+    //   stages: [
+    //     { target: 5, duration: '10s' },
+    //     { target: 5, duration: '20s' },
+    //     { target: 7, duration: '5s' },
+    //     { target: 0, duration: '10s' },
+    //   // RPS: 3 --> 5 --> 5 --> 7 --> 0
+    //   // ░░██░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+    //   // ░░██░░░░░░░░░░░░░░██████░░░░░░░░
+    //   // ░░██░░░░░░░░░░░░██░░░░░░██░░░░░░
+    //   // ░░██░░░░████████░░░░░░░░██░░░░░░
+    //   // ░░██░░██░░░░░░░░░░░░░░░░░░██░░░░
+    //   // ░░████░░░░░░░░░░░░░░░░░░░░██░░░░
+    //   // ░░██░░░░░░░░░░░░░░░░░░░░░░░░██░░
+    //   // ░░██░░░░░░░░░░░░░░░░░░░░░░░░██░░
+    //   // ░░██████████████████████████████
+    //   ],
+    // },
   },
   thresholds: {
     http_req_failed: ['rate<1'],
     http_req_duration: ['p(95)<300'],
     'http_req_duration{my_tag:  API_OTUS}': ['p(95)<500'],
     otus_check_failure_rate: ['rate<0.3'],
+    otus_http_errors_total: ['count<10'],
   },
 };
 
@@ -89,7 +91,7 @@ export function login() {
 
   const headers = { headers: { 'Content-Type': 'application/json' } };
   const resPost = http.post(
-    'https://quickpizza.grafana.com/api/users/token/login',
+    BASE_URL + '/api/users/token/login?set_cookie=true',
     JSON.stringify(payload),
     headers,
   );
@@ -113,7 +115,10 @@ export function getPages() {
     'status code resMessage is 200': (resMessage) => resMessage.status === 200,
   });
 
-  const randomUUID = uuidv4();
+  if (resMessage.status >= 500) {
+    myErrorCount.add(1);
+  }
+
   console.warn(randomUUID);
 }
 

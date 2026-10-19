@@ -19,11 +19,11 @@ jobs:
       security-events: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7.0.1
 
       - name: Install ESLint
         run: |
-          npm install eslint@8.15.0
+          npm install eslint@10.13.0
 
       - name: Run ESLint
         run: npx eslint .
