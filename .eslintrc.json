@@ -22,6 +22,7 @@
         "import/no-unresolved": "off", // k6 is actually golang, can't really import it
         "no-restricted-globals": "off", // required by k6, e.g. "init" context
         "import/extensions": "off", // .js ending is ok
-        "no-shadow": "off" // use the shadowing variables 
+        "no-shadow": "off", // use the shadowing variables 
+        "padded-blocks": ["error", "never"]
     }
 }

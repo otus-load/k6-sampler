@@ -4,7 +4,7 @@ import { SharedArray } from 'k6/data';
 import { Trend, Rate, Counter } from 'k6/metrics';
 
 // const BASE_URL =  'http://localhost:3333';
-const BASE_URL = __ENV.BASE_URL || 'https://quickpizza.grafana.com'
+const BASE_URL = __ENV.BASE_URL || 'https://quickpizza.grafana.com';
 
 const myTrend = new Trend('my_otus_trend');
 const myCheckFailureRate = new Rate('otus_check_failure_rate');
@@ -119,7 +119,6 @@ export function getPages() {
     myErrorCount.add(1);
   }
 
-  console.warn(randomUUID);
 }
 
 export default function () {

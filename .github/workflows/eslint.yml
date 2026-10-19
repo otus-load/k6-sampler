@@ -23,7 +23,7 @@ jobs:
 
       - name: Install ESLint
         run: |
-          npm install eslint@latest
+          npm install eslint@8.46.0
 
       - name: Run ESLint
         run: npx eslint .
