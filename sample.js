@@ -61,6 +61,11 @@ export const options = {
 export function login() {
   /* eslint prefer-template: "warn" */
   let res = http.get(BASE_URL + '/', { tags: { my_tag: 'API_OTUS' } });
+  
+  // html parsing
+  let title = res.html().find('head title').text();
+  console.log(title)
+
   const checkRes = check(
     res,
     { 'status code messages is 200': (res) => res.status === 200 },
